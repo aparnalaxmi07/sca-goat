@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SCAGoat Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <script type="application/javascript">
+    let ws;
+
+    function connect() {
+      ws = new WebSocket("ws://localhost:8080/chat-websocket");
+      ws.onmessage = function (e) {
+        printMessage(e.data);
+      }
+      ws.onerror = function (e) {
+        printMessage("Connection error!");
+      }
+      document.getElementById("connectButton").disabled = true;
+      document.getElementById("connectButton").textContent = "Connected";
+      document.getElementById("name").disabled = true;
+    }
+
+    function printMessage(data) {
+      let messages = document.getElementById("messages");
+      let messageData = JSON.parse(data);
+      let newMessage = document.createElement("div");
+      newMessage.classList.add("bg-indigo-600", "text-white", "rounded", "px-4", "py-2", "my-1", "max-w-lg", "w-fit");
+      newMessage.innerHTML = `<strong>${messageData.name}</strong>: ${messageData.message}`;
+      messages.appendChild(newMessage);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function sendToGroupChat() {
+      let messageText = document.getElementById("message").value;
+      if (!messageText.trim()) return;
+      document.getElementById("message").value = "";
+      let name = document.getElementById("name").value;
+      let messageObject = {
+        name: name,
+        message: messageText
+      }
+      ws.send(JSON.stringify(messageObject));
+    }
+  </script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-2xl bg-gray-800 rounded-lg shadow-lg p-6">
+    <div class="flex items-center space-x-4 mb-4">
+      <input id="name" type="text" placeholder="Your name"
+        class="w-full px-4 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      <button id="connectButton" onclick="connect()"
+        class="bg-indigo-600 px-4 py-2 rounded hover:bg-indigo-700 transition disabled:opacity-50">
+        Connect
+      </button>
+    </div>
+
+    <div id="messages"
+      class="h-64 overflow-y-auto bg-gray-700 rounded p-4 mb-4 border border-gray-600 space-y-2 text-sm">
+      <!-- Messages will appear here -->
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <input id="message" type="text" placeholder="Type a message..."
+        class="w-full px-4 py-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        onkeydown="if(event.key === 'Enter') sendToGroupChat()" />
+      <button onclick="sendToGroupChat()"
+        class="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition">
+        Send
+      </button>
+    </div>
+  </div>
+</body>
+</html>
+SSS
